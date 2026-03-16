@@ -1,18 +1,45 @@
 #include <Arduino.h>
+#include <Servo.h>
 
-// put function declarations here:
-int myFunction(int, int);
+Servo baseServo;
+Servo armServo;
+Servo gripServo;
+
+int basePin = 25;
+int armPin = 26;
+int gripPin = 27;
 
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+
+  baseServo.attach(basePin);
+  armServo.attach(armPin);
+  gripServo.attach(gripPin);
+
+  baseServo.write(90);
+  armServo.write(90);
+  gripServo.write(90);
+
+  delay(1000);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-}
 
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+  for(int pos=0; pos<=180; pos++)
+  {
+    baseServo.write(pos);
+    armServo.write(180-pos);
+    gripServo.write(pos/2);
+
+    delay(15);
+  }
+
+  for(int pos=180; pos>=0; pos--)
+  {
+    baseServo.write(pos);
+    armServo.write(180-pos);
+    gripServo.write(pos/2);
+
+    delay(15);
+  }
+
 }
