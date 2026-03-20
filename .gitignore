@@ -44,3 +44,6 @@
 .pio/
 .pioenvs/
 .piolibdeps/
+
+# VS Code
+.vscode/
