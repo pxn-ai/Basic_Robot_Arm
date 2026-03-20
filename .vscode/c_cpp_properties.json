@@ -10,6 +10,7 @@
             "includePath": [
                 "C:/Users/User/Basic_Robot_Arm/include",
                 "C:/Users/User/Basic_Robot_Arm/src",
+                "C:/Users/User/Basic_Robot_Arm/.pio/libdeps/esp32-s3-devkitm-1/ESP32Servo/src",
                 "C:/Users/User/Basic_Robot_Arm/.pio/libdeps/esp32-s3-devkitm-1/Servo/src",
                 "C:/Users/User/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/newlib/platform_include",
                 "C:/Users/User/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/freertos/include",
@@ -250,6 +251,7 @@
                 "path": [
                     "C:/Users/User/Basic_Robot_Arm/include",
                     "C:/Users/User/Basic_Robot_Arm/src",
+                    "C:/Users/User/Basic_Robot_Arm/.pio/libdeps/esp32-s3-devkitm-1/ESP32Servo/src",
                     "C:/Users/User/Basic_Robot_Arm/.pio/libdeps/esp32-s3-devkitm-1/Servo/src",
                     "C:/Users/User/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/newlib/platform_include",
                     "C:/Users/User/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/freertos/include",
