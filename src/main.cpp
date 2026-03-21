@@ -428,10 +428,21 @@ void setup() {
   delay(500);
   Serial.println("\n=== Robot Arm Controller ===");
 
-  // ── Servos ──
-  baseServo.attach(BASE_PIN);
-  armServo.attach(ARM_PIN);
-  gripServo.attach(GRIP_PIN);
+  // ── Explicitly allocate all LEDC timers for servos ──
+  // This prevents conflicts with WiFi which uses some timers
+  ESP32PWM::allocateTimer(0);
+  ESP32PWM::allocateTimer(1);
+  ESP32PWM::allocateTimer(2);
+  ESP32PWM::allocateTimer(3);
+
+  // ── Servos (attach with explicit pulse range) ──
+  baseServo.setPeriodHertz(50);
+  armServo.setPeriodHertz(50);
+  gripServo.setPeriodHertz(50);
+
+  baseServo.attach(BASE_PIN, 500, 2400);
+  armServo.attach(ARM_PIN,  500, 2400);
+  gripServo.attach(GRIP_PIN, 500, 2400);
 
   baseServo.write(baseAngle);
   armServo.write(armAngle);
