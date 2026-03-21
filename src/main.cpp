@@ -2,7 +2,6 @@
 #include <WiFi.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
-#include <ESP32Servo.h>
 
 // ─── WiFi AP Settings ───────────────────────────────────────
 const char* AP_SSID     = "RobotArm";
@@ -13,15 +12,27 @@ const int BASE_PIN = 4;
 const int ARM_PIN  = 5;
 const int GRIP_PIN = 6;
 
-// ─── Servo Objects ──────────────────────────────────────────
-Servo baseServo;
-Servo armServo;
-Servo gripServo;
+// ─── LEDC PWM Settings for Servos ───────────────────────────
+// Each servo gets its own explicit LEDC channel to prevent conflicts
+const int BASE_CH = 0;
+const int ARM_CH  = 1;
+const int GRIP_CH = 2;
+const int SERVO_FREQ = 50;        // 50Hz = 20ms period
+const int SERVO_RES  = 16;        // 16-bit resolution (0-65535)
+const int DUTY_MIN   = 1638;      // 0.5ms pulse  → 0°
+const int DUTY_MAX   = 8192;      // 2.5ms pulse  → 180°
 
 // ─── Current Angles ─────────────────────────────────────────
 int baseAngle = 90;
 int armAngle  = 90;
 int gripAngle = 90;
+
+// ─── Write angle to a servo channel via LEDC ────────────────
+void writeServo(int channel, int angle) {
+  angle = constrain(angle, 0, 180);
+  int duty = map(angle, 0, 180, DUTY_MIN, DUTY_MAX);
+  ledcWrite(channel, duty);
+}
 
 // ─── Web Server & WebSocket ─────────────────────────────────
 AsyncWebServer server(80);
@@ -404,17 +415,17 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client,
 
         if (id == "b") {
           baseAngle = angle;
-          baseServo.write(baseAngle);
+          writeServo(BASE_CH, baseAngle);
           Serial.printf("Base → %d°\n", baseAngle);
         }
         else if (id == "a") {
           armAngle = angle;
-          armServo.write(armAngle);
+          writeServo(ARM_CH, armAngle);
           Serial.printf("Arm  → %d°\n", armAngle);
         }
         else if (id == "g") {
           gripAngle = angle;
-          gripServo.write(gripAngle);
+          writeServo(GRIP_CH, gripAngle);
           Serial.printf("Grip → %d°\n", gripAngle);
         }
       }
@@ -428,26 +439,21 @@ void setup() {
   delay(500);
   Serial.println("\n=== Robot Arm Controller ===");
 
-  // ── Explicitly allocate all LEDC timers for servos ──
-  // This prevents conflicts with WiFi which uses some timers
-  ESP32PWM::allocateTimer(0);
-  ESP32PWM::allocateTimer(1);
-  ESP32PWM::allocateTimer(2);
-  ESP32PWM::allocateTimer(3);
+  // ── Servos via direct LEDC (no ESP32Servo library) ──
+  // Each channel is set up independently, then attached to its pin
+  ledcSetup(BASE_CH, SERVO_FREQ, SERVO_RES);
+  ledcSetup(ARM_CH,  SERVO_FREQ, SERVO_RES);
+  ledcSetup(GRIP_CH, SERVO_FREQ, SERVO_RES);
 
-  // ── Servos (attach with explicit pulse range) ──
-  baseServo.setPeriodHertz(50);
-  armServo.setPeriodHertz(50);
-  gripServo.setPeriodHertz(50);
+  ledcAttachPin(BASE_PIN, BASE_CH);
+  ledcAttachPin(ARM_PIN,  ARM_CH);
+  ledcAttachPin(GRIP_PIN, GRIP_CH);
 
-  baseServo.attach(BASE_PIN, 500, 2400);
-  armServo.attach(ARM_PIN,  500, 2400);
-  gripServo.attach(GRIP_PIN, 500, 2400);
-
-  baseServo.write(baseAngle);
-  armServo.write(armAngle);
-  gripServo.write(gripAngle);
-  Serial.println("Servos initialized (all at 90°)");
+  writeServo(BASE_CH, baseAngle);
+  writeServo(ARM_CH,  armAngle);
+  writeServo(GRIP_CH, gripAngle);
+  Serial.printf("Servos initialized: Base(GPIO%d/CH%d) Arm(GPIO%d/CH%d) Grip(GPIO%d/CH%d)\n",
+                BASE_PIN, BASE_CH, ARM_PIN, ARM_CH, GRIP_PIN, GRIP_CH);
 
   // ── WiFi Access Point ──
   WiFi.softAP(AP_SSID, AP_PASSWORD);
